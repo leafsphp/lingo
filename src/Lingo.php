@@ -351,7 +351,7 @@ class Lingo
     /**
      * Return a route based on the current locale
      *
-     * @param array $routes - associative array of locale => route
+     * @param array $routes Associative array of locale => route
      *
      * @return string|null
      */
@@ -360,5 +360,17 @@ class Lingo
         $route = $routes[$this->getCurrentLocale()] ?? null;
 
         return $route ? '/' . $this->getCurrentLocale() . $route : null;
+    }
+
+    /**
+     * Check if a locale is the current locale
+     *
+     * @param string $locale The locale to check
+     *
+     * @return bool
+     */
+    public function is(string $locale): bool
+    {
+        return $locale === $this->getCurrentLocale();
     }
 }
