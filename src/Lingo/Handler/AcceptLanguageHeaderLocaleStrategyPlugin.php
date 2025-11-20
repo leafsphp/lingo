@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace LeafOmniglot\Plugins\Locale;
+namespace Leaf\Lingo\Plugins;
 
 
 use Leaf\Http\Request;
@@ -11,9 +11,7 @@ use Leaf\Http\Request;
 class AcceptLanguageHeaderLocaleStrategyPlugin implements LocaleStrategyPluginInterface
 {
     /**
-     * @param string $locale
-     *
-     * @return void
+     * @inheritDoc
      */
     public function setCurrentLocale(string $locale): void
     {
@@ -21,7 +19,7 @@ class AcceptLanguageHeaderLocaleStrategyPlugin implements LocaleStrategyPluginIn
     }
 
     /**
-     * @return string|null
+     * @inheritDoc
      */
     public function getCurrentLocale(): ?string
     {

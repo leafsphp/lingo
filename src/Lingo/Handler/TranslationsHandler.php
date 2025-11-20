@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 
-namespace LeafOmniglot\Handler;
+namespace Leaf\Lingo\Handler;
 
 
-use LeafOmniglot\Exceptions\TranslationParamNotFoundException;
+use Leaf\Lingo\Exceptions\TranslationParamNotFoundException;
 
 class TranslationsHandler
 {
@@ -15,8 +15,8 @@ class TranslationsHandler
     private FileHandler $fileHandler;
 
     /**
-     * @param \LeafOmniglot\Handler\LocaleHandler $localeHandler
-     * @param \LeafOmniglot\Handler\FileHandler $fileHandler
+     * @param \Leaf\Lingo\Handler\LocaleHandler $localeHandler
+     * @param \Leaf\Lingo\Handler\FileHandler $fileHandler
      */
     public function __construct(LocaleHandler $localeHandler, FileHandler $fileHandler)
     {

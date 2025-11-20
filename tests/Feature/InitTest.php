@@ -14,7 +14,7 @@ it('tests that init throws exception when locale file not found', function () {
         'DEFAULT_LOCALE' => 'invalid-locale',
         'TRANSLATION_FILES_LOCATION' => './tests/data/locales'
     ]))->toThrow(
-        \LeafOmniglot\Exceptions\MissingTranslationFileException::class,
+        \Leaf\Lingo\Exceptions\MissingTranslationFileException::class,
         'Translation file not found for locale "invalid-locale" make sure you have a translation file named "invalid-locale.locale.json" in your translation files folder'
     );
 });

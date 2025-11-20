@@ -58,7 +58,7 @@ it('tests that translate, throws exception if translation parameter not found', 
 
     expect(
         fn () => tl('test.title', ['%param%' => 'not good'])
-    )->toThrow(\LeafOmniglot\Exceptions\TranslationParamNotFoundException::class, 'Param "%param%" not found in translation string "Its a test EN!"');
+    )->toThrow(\Leaf\Lingo\Exceptions\TranslationParamNotFoundException::class, 'Param "%param%" not found in translation string "Its a test EN!"');
 });
 
 afterEach(function () {

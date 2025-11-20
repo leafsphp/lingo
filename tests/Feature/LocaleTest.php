@@ -16,14 +16,14 @@ it('tests that getCurrentLocale get locale using custom strategy', function () {
     omniglot()->init([
         'TRANSLATION_FILES_LOCATION' => './tests/data/locales',
         'LOCALE_STRATEGY' => 'custom',
-        'CUSTOM_LOCALE_STRATEGY_CLASS_NAME' => \LeafOmniglot\Plugins\Locale\TestCustomLocaleStrategyPlugin::class
+        'CUSTOM_LOCALE_STRATEGY_CLASS_NAME' => \Leaf\Lingo\Plugins\Locale\TestCustomLocaleStrategyPlugin::class
     ]);
 
     expect(omniglot()->getCurrentLocale())->toBe('custom');
     expect(tl('welcome.page.title'))->toBe('Hello Custom');
 
     // Here because of caching issues with tests
-    \LeafOmniglot\Reader\ConfigReader::config('LOCALE_STRATEGY', 'session');
+    \Leaf\Lingo\Reader\ConfigReader::config('LOCALE_STRATEGY', 'session');
 });
 
 it('tests that setCurrentLocale throws exception if locale on found in files', function () {
@@ -34,7 +34,7 @@ it('tests that setCurrentLocale throws exception if locale on found in files', f
     expect(omniglot()->getCurrentLocale())->toBe('en_US');
 
     expect(fn () => omniglot()->setCurrentLocale('random_locale'))
-        ->toThrow(\LeafOmniglot\Exceptions\MissingTranslationFileException::class);
+        ->toThrow(\Leaf\Lingo\Exceptions\MissingTranslationFileException::class);
 });
 
 it('tests that getAvailableLocales gets all locales that there are files for', function () {
@@ -54,7 +54,7 @@ it('tests that getDefaultLocale returns configured default locale', function () 
     expect(omniglot()->getDefaultLocale())->toBe('pt_PT');
 
     // Here because of caching issues with tests
-    \LeafOmniglot\Reader\ConfigReader::config('DEFAULT_LOCALE', 'en_US');
+    \Leaf\Lingo\Reader\ConfigReader::config('DEFAULT_LOCALE', 'en_US');
 });
 
 afterEach(function () {

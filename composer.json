@@ -1,45 +1,49 @@
 {
-    "name": "crosa7/leaf-omniglot",
-    "description": "A Leaf module to add multi language capabilities to leaf applications",
-    "keywords": [
-        "translations",
-        "localization",
-        "multi-language",
-        "i18n",
-        "internationalization",
-        "leaf",
-        "php"
-    ],
-    "type": "library",
-    "minimum-stability": "stable",
-    "prefer-stable": true,
-    "require": {
-        "leafs/http": "^2.3|^3.0|^4.0",
-        "leafs/session": "^2.0|^3.0|^4.0",
-        "ext-json": "*"
+  "name": "leafs/lingo",
+  "description": "Add multi language support to your Leaf applications with ease.",
+  "keywords": [
+    "translations",
+    "localization",
+    "multi-language",
+    "i18n",
+    "internationalization",
+    "leaf",
+    "php"
+  ],
+  "type": "library",
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "require": {
+    "leafs/session": "*",
+    "leafs/fs": "*",
+    "symfony/yaml": "*"
+  },
+  "require-dev": {
+    "pestphp/pest": "*",
+    "mockery/mockery": "*"
+  },
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Leafs\\Lingo\\": "src/"
     },
-    "require-dev": {
-        "pestphp/pest": "^1.0|^2.0",
-        "mockery/mockery": "^1.6"
+    "files": [
+      "src/functions.php"
+    ]
+  },
+  "authors": [
+    {
+      "name": "André Rosa",
+      "email": "crosa7000@gmail.com"
     },
-    "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "LeafOmniglot\\": "src/"
-        },
-        "files": [
-            "src/functions.php"
-        ]
-    },
-    "authors": [
-        {
-            "name": "André Rosa",
-            "email": "crosa7000@gmail.com"
-        }
-    ],
-    "config": {
-        "allow-plugins": {
-            "pestphp/pest-plugin": true
-        }
+    {
+      "name": "Michael Darko",
+      "email": "mychi.darko@gmail.com"
     }
+  ],
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
 }

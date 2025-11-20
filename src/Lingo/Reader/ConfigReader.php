@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 
-namespace LeafOmniglot\Reader;
+namespace Leaf\Lingo\Reader;
 
 
-use LeafOmniglot\Constants\ConfigConstants;
-use LeafOmniglot\Exceptions\LocaleStrategyNotFoundException;
-use LeafOmniglot\Plugins\Locale\AcceptLanguageHeaderLocaleStrategyPlugin;
-use LeafOmniglot\Plugins\Locale\LocaleStrategyPluginInterface;
-use LeafOmniglot\Plugins\Locale\SessionLocaleStrategyPlugin;
+use Leaf\Lingo\Constants\ConfigConstants;
+use Leaf\Lingo\Exceptions\LocaleStrategyNotFoundException;
+use Leaf\Lingo\Plugins\Locale\AcceptLanguageHeaderLocaleStrategyPlugin;
+use Leaf\Lingo\Plugins\Locale\LocaleStrategyPluginInterface;
+use Leaf\Lingo\Plugins\Locale\SessionLocaleStrategyPlugin;
 
 class ConfigReader
 {
@@ -56,9 +56,9 @@ class ConfigReader
     }
 
     /**
-     * @return \LeafOmniglot\Plugins\Locale\LocaleStrategyPluginInterface
+     * @return \Leaf\Lingo\Plugins\Locale\LocaleStrategyPluginInterface
      *
-     * @throws \LeafOmniglot\Exceptions\LocaleStrategyNotFoundException
+     * @throws \Leaf\Lingo\Exceptions\LocaleStrategyNotFoundException
      */
     public static function getLocaleStrategy(): LocaleStrategyPluginInterface
     {

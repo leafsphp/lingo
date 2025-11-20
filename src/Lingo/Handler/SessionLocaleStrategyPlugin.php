@@ -3,19 +3,17 @@
 declare(strict_types=1);
 
 
-namespace LeafOmniglot\Plugins\Locale;
+namespace Leaf\Lingo\Plugins;
 
 
 use Leaf\Http\Session;
 
 class SessionLocaleStrategyPlugin implements LocaleStrategyPluginInterface
 {
-    private const SESSION_KEY_CURRENT_LOCALE = 'OMNIGLOT_LOCALE';
+    private const SESSION_KEY_CURRENT_LOCALE = '__lingo.locale__';
 
     /**
-     * @param string $locale
-     *
-     * @return void
+     * @inheritDoc
      */
     public function setCurrentLocale(string $locale): void
     {
@@ -25,7 +23,7 @@ class SessionLocaleStrategyPlugin implements LocaleStrategyPluginInterface
     }
 
     /**
-     * @return string|null
+     * @inheritDoc
      */
     public function getCurrentLocale(): ?string
     {

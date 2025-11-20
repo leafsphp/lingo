@@ -1,54 +1,44 @@
 <?php
 
-if (! function_exists('tl')) {
-
+if (!function_exists('lingo')) {
     /**
-     * @param string $key
-     * @param array $params
-     *
-     * @return string
+     * Return the Lingo instance or translate a string
+     * 
+     * @param string|null $key The translation key
+     * @param array $params The parameters for the translation
+     * 
+     * @return \Leaf\Lingo|string
      */
-    function tl(string $key, array $params = []): string
+    function lingo(?string $key = null, array $params = [])
     {
-        return omniglot()->translate($key, $params);
+        if (!(\Leaf\Config::getStatic('lingo'))) {
+            \Leaf\Config::singleton('lingo', function () {
+                return new \Leaf\Lingo();
+            });
+        }
+
+        $instance = \Leaf\Config::get('lingo');
+
+        if ($key) {
+            return $instance->translate($key, $params);
+        }
+
+        return $instance;
     }
 }
 
-
-// __ is used more in other frameworks like Laravel so let's add this as an option to make things easier on AI
-
-if (! function_exists('__')) {
+if (!function_exists('__')) {
     /**
-     * @param string $key
-     * @param array $params
+     * Translate a key using the Lingo instance
+     *
+     * @param string $key The translation key
+     * @param array $params The parameters for the translation
      *
      * @return string
      */
 
     function __(string $key, array $params = []): string
     {
-        return omniglot()->translate($key, $params);
-    }
-}
-
-if (! function_exists('omniglot')) {
-
-    /**
-     * @return \LeafOmniglot\Omniglot
-     */
-    function omniglot(): \LeafOmniglot\Omniglot
-    {
-        $instance = \LeafOmniglot\Reader\ConfigReader::config(
-            \LeafOmniglot\Constants\ConfigConstants::KEY_OMNIGLOT
-        );
-
-        if (!$instance) {
-            $instance = new \LeafOmniglot\Omniglot();
-            \LeafOmniglot\Reader\ConfigReader::config(
-                \LeafOmniglot\Constants\ConfigConstants::KEY_OMNIGLOT, $instance
-            );
-        }
-
-        return $instance;
+        return lingo($key, $params);
     }
 }
