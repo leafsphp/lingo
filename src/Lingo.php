@@ -349,21 +349,16 @@ class Lingo
     }
 
     /**
-     * Add routes for language switching
+     * Return a route based on the current locale
      *
-     * @param string|null $path
-     * @param string|null $requestLocaleParamName
-     * @param bool $redirectToReferer
+     * @param array $routes - associative array of locale => route
      *
-     * @return void
-     *
-     * @throws \Exception
+     * @return string|null
      */
-    public function route(
-        ?string $path = '/lingo/switch',
-        ?string $requestLocaleParamName = 'locale',
-        bool $redirectToReferer = true
-    ): void {
-        //
+    public function route(array $routes)
+    {
+        $route = $routes[$this->getCurrentLocale()] ?? null;
+
+        return $route ? '/' . $this->getCurrentLocale() . $route : null;
     }
 }
