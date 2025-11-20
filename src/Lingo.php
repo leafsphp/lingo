@@ -167,24 +167,30 @@ class Lingo
     protected static array $cache = [];
     protected static array $fileIndex = [];
     protected static array $translations = [];
+    protected Lingo\Handler $handler;
 
     /**
      * Initialize lingo with config
-     * 
+     *
      * @param array $config
      *
      * @return void
      */
-    public function init(array $config = []): void
+    public function create(array $config = []): void
     {
         $this->config = array_merge($this->config, $config);
 
         $this->getTranslationFiles();
+
+        if ($this->config('locales.strategy') === 'router') {
+            $this->handler = new Lingo\Handler\Route();
+            $this->handler->loadConfig($this->config);
+        }
     }
 
     /**
      * Get/Set a config for locales
-     * 
+     *
      * @param string $key
      * @param mixed|null $value
      *
@@ -199,7 +205,15 @@ class Lingo
         $this->config[$key] = $value;
     }
 
-    public static function get(string $locale, string $key)
+    /**
+     * Static method to get translation
+     *
+     * @param string $locale - locale code
+     * @param string $key - translation key defined in the locale file
+     *
+     * @return string
+     */
+    public static function get(string $locale, string $key): string
     {
         if (isset(self::$cache[$locale][$key])) {
             return self::$cache[$locale][$key];
@@ -210,12 +224,20 @@ class Lingo
         }
 
         if (isset(self::$fileIndex[$locale][$key])) {
-            $value = self::loadSingleKey($locale, $key);
-            self::$cache[$locale][$key] = $value;
-            return $value;
+            self::$cache[$locale][$key] = self::$fileIndex[$locale][$key];
+            return self::$cache[$locale][$key];
         }
 
         return $key;
+    }
+
+    protected static function parseTranslationParameters(string $translation, array $params): string
+    {
+        foreach ($params as $paramKey => $paramValue) {
+            $translation = str_replace("{{$paramKey}}", $paramValue, $translation);
+        }
+
+        return $translation;
     }
 
     protected static function indexFile(string $locale): array
@@ -259,10 +281,15 @@ class Lingo
      */
     public function translate(string $key, array $params = []): string
     {
-        return $this->getHandlerFactory()->createTranslationsHandler()->getTranslationByKey($key, $params);
+        return $this->parseTranslationParameters($this->get(
+            $this->handler->getCurrentLocale(),
+            $key,
+        ), $params);
     }
 
     /**
+     * Sets the current locale to be used
+     *
      * @param string $locale - must match the file name Ex: file: en_US.locale.json, localeName: en_US
      *
      * @return void
@@ -271,15 +298,16 @@ class Lingo
      */
     public function setCurrentLocale(string $locale): void
     {
-        $this->getHandlerFactory()->createLocaleHandler()->setCurrentLocale($locale);
+        $this->handler->setCurrentLocale($locale);
     }
 
     /**
+     * Returns the current locale being used
      * @return string|null
      */
     public function getCurrentLocale(): ?string
     {
-        return $this->getHandlerFactory()->createLocaleHandler()->getCurrentLocale();
+        return $this->handler->getCurrentLocale();
     }
 
     /**
@@ -294,7 +322,7 @@ class Lingo
 
     /**
      * Returns all available locales with their names if possible
-     * 
+     *
      * @return array<string, string>
      */
     public function getAvailableLocalesWithNames(): array
@@ -315,20 +343,12 @@ class Lingo
      */
     public function getDefaultLocale(): string
     {
-        return $this->getHandlerFactory()->createLocaleHandler()->getDefaultLocale();
-    }
-
-    /**
-     * @return \Leaf\Lingo\Factory\HandlerFactory
-     */
-    protected function getHandlerFactory(): HandlerFactory
-    {
-        return new HandlerFactory();
+        return $this->config('locales.default');
     }
 
     /**
      * Add routes for language switching
-     * 
+     *
      * @param string|null $path
      * @param string|null $requestLocaleParamName
      * @param bool $redirectToReferer
@@ -342,9 +362,6 @@ class Lingo
         ?string $requestLocaleParamName = 'locale',
         bool $redirectToReferer = true
     ): void {
-        $this
-            ->getHandlerFactory()
-            ->createRouteHandler()
-            ->addLanguageSwitchRoute($path, $requestLocaleParamName, $redirectToReferer);
+        //
     }
 }

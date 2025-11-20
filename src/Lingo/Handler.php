@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 
-namespace Leaf\Lingo\Handler;
+namespace Leaf\Lingo;
 
-interface Contract
+interface Handler
 {
     /**
      * Load config into handler
      * @return static
      */
-    public function loadConfig(): static;
+    public function loadConfig(array $config): static;
 
     /**
      * Set up the handler

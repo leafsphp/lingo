@@ -2,19 +2,20 @@
 
 declare(strict_types=1);
 
-
 namespace Leaf\Lingo\Handler;
 
+use Leaf\Lingo\Handler;
 
-class Route implements Contract
+class Route implements Handler
 {
     protected array $config = [];
 
     /**
      * @inheritDoc
      */
-    public function loadConfig(): static
+    public function loadConfig(array $config): static
     {
+        $this->config = $config;
         return $this;
     }
 
@@ -46,10 +47,10 @@ class Route implements Contract
         $currentUrl = request()->getPath();
         $segments = explode('/', ltrim($currentUrl, '/'));
 
-        if (count($segments) > 0) {
+        if (\count($segments) > 0) {
             $segments[0] = $locale;
             $newUrl = '/' . implode('/', $segments);
-            response()->redirect($newUrl)->send();
+            response()->redirect($newUrl);
 
             exit;
         }
@@ -68,7 +69,7 @@ class Route implements Contract
 
     /**
      * Determine if a route should be prefixed with locale
-     * 
+     *
      * @param array $route
      * @return bool
      */
