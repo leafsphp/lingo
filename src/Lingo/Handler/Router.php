@@ -6,7 +6,7 @@ namespace Leaf\Lingo\Handler;
 
 use Leaf\Lingo\Handler;
 
-class Route implements Handler
+class Router implements Handler
 {
     protected array $config = [];
 
@@ -64,7 +64,7 @@ class Route implements Handler
         $currentUrl = request()->getPath();
         $segments = explode('/', ltrim($currentUrl, '/'));
 
-        return $segments[0] ?? null;
+        return ($segments[0] ?? null) ?: $this->config['locales.default'];
     }
 
     /**

@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace Leaf;
 
+use Symfony\Component\Yaml\Yaml;
+
 class Lingo
 {
     protected array $locales = [
@@ -164,9 +166,9 @@ class Lingo
         'locales.customStrategy' => null,
     ];
 
-    protected static array $cache = [];
-    protected static array $fileIndex = [];
-    protected static array $translations = [];
+    protected array $cache = [];
+    protected array $fileIndex = [];
+    protected array $translations = [];
     protected Lingo\Handler $handler;
 
     /**
@@ -183,7 +185,7 @@ class Lingo
         $this->getTranslationFiles();
 
         if ($this->config('locales.strategy') === 'router') {
-            $this->handler = new Lingo\Handler\Route();
+            $this->handler = new Lingo\Handler\Router();
             $this->handler->loadConfig($this->config);
         }
     }
@@ -213,25 +215,25 @@ class Lingo
      *
      * @return string
      */
-    public static function get(string $locale, string $key): string
+    public function get(string $locale, string $key): string
     {
-        if (isset(self::$cache[$locale][$key])) {
-            return self::$cache[$locale][$key];
+        if (isset($this->cache[$locale][$key])) {
+            return $this->cache[$locale][$key];
         }
 
-        if (!isset(self::$fileIndex[$locale])) {
-            self::$fileIndex[$locale] = self::indexFile($locale);
+        if (!isset($this->fileIndex[$locale])) {
+            $this->fileIndex[$locale] = $this->indexFile($locale);
         }
 
-        if (isset(self::$fileIndex[$locale][$key])) {
-            self::$cache[$locale][$key] = self::$fileIndex[$locale][$key];
-            return self::$cache[$locale][$key];
+        if (isset($this->fileIndex[$locale][$key])) {
+            $this->cache[$locale][$key] = $this->fileIndex[$locale][$key];
+            return $this->cache[$locale][$key];
         }
 
         return $key;
     }
 
-    protected static function parseTranslationParameters(string $translation, array $params): string
+    protected function parseTranslationParameters(string $translation, array $params): string
     {
         foreach ($params as $paramKey => $paramValue) {
             $translation = str_replace("{{$paramKey}}", $paramValue, $translation);
@@ -240,18 +242,12 @@ class Lingo
         return $translation;
     }
 
-    protected static function indexFile(string $locale): array
+    protected function indexFile(string $locale): array
     {
-        $index = [];
-        $file = file(__DIR__ . "/locales/$locale.yml");
+        $filePath = $this->translations[$locale];
+        $data = Yaml::parseFile($filePath);
 
-        foreach ($file as $line) {
-            if (preg_match('/^([a-zA-Z0-9_-]+):/', $line, $matches)) {
-                $index[$matches[1]] = true;
-            }
-        }
-
-        return $index;
+        return $data;
     }
 
     /**
@@ -265,10 +261,10 @@ class Lingo
             return;
         }
 
-        $files = \Leaf\FS\Directory::read($fileDirectory, '*.yml');
+        $files = glob("$fileDirectory/*.yml");
 
         foreach ($files as $file) {
-            $localeName = rtrim(path($file)->basename(), '.yml');
+            $localeName = str_replace('.yml', '', path($file)->basename());
             $this->translations[$localeName] = $file;
         }
     }
