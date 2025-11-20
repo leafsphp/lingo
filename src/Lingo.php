@@ -161,15 +161,22 @@ class Lingo
 
     protected array $config = [
         'locales.default' => 'en_US',
+        'locales.available' => [],
         'locales.path' => 'locales',
-        'locales.strategy' => 'session',
+        'locales.strategy' => 'router', // router, header, session, custom
         'locales.customStrategy' => null,
+        'locales.cacheKey' => '__lingo.locale__',
     ];
 
     protected array $cache = [];
     protected array $fileIndex = [];
     protected array $translations = [];
     protected Lingo\Handler $handler;
+    protected array $drivers = [
+        'router' => Lingo\Handler\Router::class,
+        'header' => Lingo\Handler\Header::class,
+        'session' => Lingo\Handler\Session::class,
+    ];
 
     /**
      * Initialize lingo with config
@@ -184,10 +191,7 @@ class Lingo
 
         $this->getTranslationFiles();
 
-        if ($this->config('locales.strategy') === 'router') {
-            $this->handler = new Lingo\Handler\Router();
-            $this->handler->loadConfig($this->config);
-        }
+        $this->handler = $this->drivers[$this->config['locales.strategy']]::create($this->config);
     }
 
     /**
@@ -265,7 +269,9 @@ class Lingo
 
         foreach ($files as $file) {
             $localeName = str_replace('.yml', '', path($file)->basename());
+
             $this->translations[$localeName] = $file;
+            $this->config['locales.available'][] = $localeName;
         }
     }
 
@@ -313,7 +319,7 @@ class Lingo
      */
     public function getAvailableLocales(): array
     {
-        return array_keys($this->translations);
+        return $this->config('locales.available');
     }
 
     /**
@@ -325,7 +331,7 @@ class Lingo
     {
         $locales = [];
 
-        foreach ($this->translations as $locale => $file) {
+        foreach ($this->getAvailableLocales() as $locale) {
             $locales[$locale] = $this->locales[$locale] ?? $locale;
         }
 

@@ -8,41 +8,37 @@ use Leaf\Lingo\Handler;
 
 class Router implements Handler
 {
-    protected array $config = [];
+    protected static array $config = [];
 
     /**
-     * @inheritDoc
+     * Set up the handler
+     * @return static
      */
-    public function loadConfig(array $config): static
+    public static function create(array $config): static
     {
-        $this->config = $config;
-        return $this;
-    }
+        static::$config = $config;
 
-    /**
-     * @inheritDoc
-     */
-    public function create(): static
-    {
         app()->hook('router.before.route', function ($context) {
-            foreach ($context['routes'] as $method => &$routeGroup) {
-                foreach ($routeGroup as &$route) {
-                    if ($this->shouldPrefixWithLocale($route)) {
-                        $route['pattern'] = '/{locale}' . $route['pattern'];
+            $updatedRoutes = [];
+
+            foreach ($context['routes'] as $method => $routeGroup) {
+                foreach ($routeGroup as $route) {
+                    if (static::shouldPrefixWithLocale($route)) {
+                        $updatedRoutes[$method] = static::createLocalePrefixedRoutes($route);
                     }
                 }
             }
 
-            return $context;
+            return ['routes' => $updatedRoutes];
         });
 
-        return $this;
+        return new static();
     }
 
     /**
      * @inheritDoc
      */
-    public function setCurrentLocale(string $locale): void
+    public static function setCurrentLocale(string $locale): void
     {
         $currentUrl = request()->getPath();
         $segments = explode('/', ltrim($currentUrl, '/'));
@@ -59,12 +55,12 @@ class Router implements Handler
     /**
      * @inheritDoc
      */
-    public function getCurrentLocale(): ?string
+    public static function getCurrentLocale(): ?string
     {
         $currentUrl = request()->getPath();
         $segments = explode('/', ltrim($currentUrl, '/'));
 
-        return ($segments[0] ?? null) ?: $this->config['locales.default'];
+        return ($segments[0] ?? null) ?: static::$config['locales.default'];
     }
 
     /**
@@ -73,12 +69,33 @@ class Router implements Handler
      * @param array $route
      * @return bool
      */
-    protected function shouldPrefixWithLocale(array $route): bool
+    protected static function shouldPrefixWithLocale(array $route): bool
     {
-        if (!$route['lingo.no_locale_prefix'] ?? false) {
+        if (isset($route['lingo.no_locale_prefix']) && $route['lingo.no_locale_prefix'] === true) {
             return false;
         }
 
         return true;
+    }
+
+    protected static function createLocalePrefixedRoutes(array $route): array
+    {
+        $prefixedRoutes = [];
+        $defaultLocale = static::$config['locales.default'] ?? null;
+        $availableLocales = static::$config['locales.available'] ?? [];
+
+        foreach ($availableLocales as $locale) {
+            $newRoute = $route;
+            $newRoute['pattern'] = '/' . $locale . ($route['pattern'] === '/' ? '' : $route['pattern']);
+            $prefixedRoutes[] = $newRoute;
+        }
+
+        $prefixedRoutes[] = array_merge($route, [
+            'handler' => function () use ($defaultLocale) {
+                return response()->redirect('/' . $defaultLocale . request()->getPath());
+            }
+        ]);
+
+        return $prefixedRoutes;
     }
 }
