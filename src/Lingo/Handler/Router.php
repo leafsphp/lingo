@@ -89,6 +89,21 @@ class Router implements Handler
                 $newRoute = $route;
                 $newRoute['pattern'] = '/' . $locale . ($route['lingo.routes'][$locale] === '/' ? '' : $route['lingo.routes'][$locale]);
                 $prefixedRoutes[] = $newRoute;
+
+                foreach ($route['lingo.routes'] as $key => $value) {
+                    if ($key === $locale) {
+                        continue;
+                    }
+
+                    $otherLingoInRoute = $route;
+                    $otherLingoInRoute['pattern'] = '/' . $locale . ($value === '/' ? '' : $value);
+                    $otherLingoInRoute['handler'] = function () use ($locale, $route) {
+                        $value = $route['lingo.routes'][$locale];
+                        return response()->redirect('/' . $locale . ($value === '/' ? '' : $value));
+                    };
+                    $prefixedRoutes[] = $otherLingoInRoute;
+                }
+
                 continue;
             }
 
