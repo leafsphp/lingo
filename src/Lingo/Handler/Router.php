@@ -24,7 +24,10 @@ class Router implements Handler
             foreach ($context['routes'] as $method => $routeGroup) {
                 foreach ($routeGroup as $route) {
                     if (static::shouldPrefixWithLocale($route)) {
-                        $updatedRoutes[$method] = static::createLocalePrefixedRoutes($route);
+                        $updatedRoutes[$method] = array_merge(
+                            $updatedRoutes[$method] ?? [],
+                            static::createLocalePrefixedRoutes($route)
+                        );
                     }
                 }
             }
@@ -85,7 +88,7 @@ class Router implements Handler
         $availableLocales = static::$config['locales.available'] ?? [];
 
         foreach ($availableLocales as $locale) {
-            if (isset($route['lingo.routes'][$locale])) {
+            if (!empty($route['lingo.routes'][$locale])) {
                 $newRoute = $route;
                 $newRoute['pattern'] = '/' . $locale . ($route['lingo.routes'][$locale] === '/' ? '' : $route['lingo.routes'][$locale]);
                 $prefixedRoutes[] = $newRoute;
@@ -101,6 +104,7 @@ class Router implements Handler
                         $value = $route['lingo.routes'][$locale];
                         return response()->redirect('/' . $locale . ($value === '/' ? '' : $value));
                     };
+
                     $prefixedRoutes[] = $otherLingoInRoute;
                 }
 
