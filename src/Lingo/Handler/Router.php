@@ -85,6 +85,13 @@ class Router implements Handler
         $availableLocales = static::$config['locales.available'] ?? [];
 
         foreach ($availableLocales as $locale) {
+            if (isset($route['lingo.routes'][$locale])) {
+                $newRoute = $route;
+                $newRoute['pattern'] = '/' . $locale . ($route['lingo.routes'][$locale] === '/' ? '' : $route['lingo.routes'][$locale]);
+                $prefixedRoutes[] = $newRoute;
+                continue;
+            }
+
             $newRoute = $route;
             $newRoute['pattern'] = '/' . $locale . ($route['pattern'] === '/' ? '' : $route['pattern']);
             $prefixedRoutes[] = $newRoute;
