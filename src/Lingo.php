@@ -355,11 +355,47 @@ class Lingo
      *
      * @return string|null
      */
-    public function route(array $routes)
+    public function matchRoute(array $routes)
     {
         $route = $routes[$this->getCurrentLocale()] ?? null;
 
         return $route ? '/' . $this->getCurrentLocale() . $route : null;
+    }
+
+    /**
+     * Switch route to a different locale
+     *
+     * @param string $locale The locale to switch to
+     *
+     * @return string
+     */
+    public function switch(string $locale): string
+    {
+        $currentUrl = request()->getPath();
+        $segments = explode('/', ltrim($currentUrl, '/'));
+
+        if (\count($segments) > 0) {
+            $segments[0] = $locale;
+            $newUrl = '/' . implode('/', $segments);
+
+            return $newUrl;
+        }
+
+        return $currentUrl;
+    }
+
+    /**
+     * Get a route based on the current locale
+     *
+     * @param string $path The path to use
+     *
+     * @return string|null
+     */
+    public function url(string $path): ?string
+    {
+        $locale = $this->getCurrentLocale();
+
+        return $locale ? str_replace('//', '/', "/$locale/$path") : null;
     }
 
     /**
@@ -372,5 +408,19 @@ class Lingo
     public function is(string $locale): bool
     {
         return $locale === $this->getCurrentLocale();
+    }
+
+    /**
+     * Output variant based on current locale
+     *
+     * @param array $texts Associative array of locale => text
+     *
+     * @return string|null
+     */
+    public function variants(array $variants): ?string
+    {
+        $locale = $this->getCurrentLocale();
+
+        return $locale ? ($variants[$locale] ?? null) : null;
     }
 }
