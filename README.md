@@ -2,268 +2,239 @@
 <p align="center">
   <br><br>
   <img src="https://leafphp.netlify.app/assets/img/leaf3-logo.png" height="100"/>
-  <h1 align="center">Leaf Omniglot</h1>
+  <h1 align="center">Lingo</h1>
   <br><br>
 </p>
 
-[![Latest Stable Version](http://poser.pugx.org/crosa7/leaf-omniglot/v)](https://packagist.org/packages/crosa7/leaf-omniglot)
-[![Total Downloads](http://poser.pugx.org/crosa7/leaf-omniglot/downloads)](https://packagist.org/packages/crosa7/leaf-omniglot)
-[![License](http://poser.pugx.org/crosa7/leaf-omniglot/license)](https://packagist.org/packages/crosa7/leaf-omniglot)
+[![Latest Stable Version](http://poser.pugx.org/leafs/lingo/v)](https://packagist.org/packages/leafs/lingo)
+[![Total Downloads](http://poser.pugx.org/leafs/lingo/downloads)](https://packagist.org/packages/leafs/lingo)
+[![License](http://poser.pugx.org/leafs/lingo/license)](https://packagist.org/packages/leafs/lingo)
 
-Leaf Omniglot is a simple but powerful module that adds multi language capabilities to your leaf applications.
+Leaf Lingo is a simple but powerful module that adds multi language functionality to your leaf applications. It is baked into Leaf's core and allows you to easily translate your applications to multiple languages, without any hassle.
 
 ## Installation
 
-You can easily install Leaf Omniglot using [Composer](https://getcomposer.org/).
+You can easily install Lingo using [Composer](https://getcomposer.org/).
 
 ```bash
-composer require crosa7/leaf-omniglot
+composer require leafs/lingo
 ```
 
-[//]: # (Or with Leaf Cli)
+Or with Leaf Cli
 
-[//]: # ()
-[//]: # (```sh)
-
-[//]: # (leaf install omniglot)
-
-[//]: # (```)
+```sh
+leaf install lingo
+```
 
 ## Quick Start Guide
 
-### Create translation folder and files
+After installing Lingo, you only need to define your translation files. In Leaf MVC, you simply need to create an `app/locales` folder and add your translation files there. Translation files are written in YML, and can use languages like `en.yml` and `de.yml` or specific locales like `en_US.yml` and `pt_BR.yml`.
 
-```php
-// Create a folder named "locales" in your project root
-// (you can also create in another place that makes more sense, just be aware to configure the path accordingly)
+```yaml
+# app/locales/fr.yml
 
-// Create the following file inside the "locales" folder
-en_US.locale.json
-
-// With the following content
-{
-    "welcome.title": "Hello World"
-}
+hero.title: "Bonjour le monde"
 ```
 
-### Initialize Omniglot
-
-In your index.php file (if using MVC: public/index.php). Add these lines:
+From there, you can use the `lingo()` helper function to translate strings in your views or controllers.
 
 ```php
-omniglot()->init(
-    [
-        'TRANSLATION_FILES_LOCATION' => './locales',
-    ]
-);
+$heroTitle = lingo('hero.title'); // "Bonjour le monde"
 ```
 
-### Add Language Switch Route
+In a Blade template, you can use it like this:
 
-In your routes file ("_app.php" for MVC and "index.php" for base Leaf) add this line:
+```blade
+<h1>@lingo('hero.title')</h1> <!-- "Bonjour le monde" -->
+```
+
+## Lingo Modes
+
+By default, Lingo uses routes for the translation strategy which means that if you have routes like this in your Leaf app:
 
 ```php
-omniglot()->addLanguageSwitchRoute();
+app()->get('/home', function() {
+    return response()->render('home');
+});
+
+app()->get('/about', function() {
+    return response()->render('about');
+});
 ```
 
-### Start Translating
+Lingo will automatically create routes for each language like this:
 
-Now in your template file you can add the following:
+```txt
+/en/home
+/fr/home
+/en/about
+/fr/about
+```
 
-(this example is using **laravel blade** as template engine but you can adjust according to your template engine)
+This will be done automatically for you, based on the locales you have defined in your translation files. If you have `de.yml` and `fr.yml`, Lingo will create routes for `/de/*` and `/fr/*`. It will also set up redirects so that if a user visits `/home`, they will be redirected to the default language route, e.g. `/en/home`. The default language can be configured in your `.env` file with `APP_LOCALE=...`.
+
+### Header Mode
+
+Header mode is useful when you are building an API with Leaf and want to support multiple languages based on the `Accept-Language` header sent by the client. In this mode, Lingo will **not** create language-specific routes, but will instead determine the language to use based on the `Accept-Language` header.
+
+For example, if a client sends a request with the header `Accept-Language: fr`, Lingo will use the French translations for that request, even though the route is **not** prefixed with `/fr`.
+
+To enable header mode, you need to set the following in your `.env` file:
+
+```env
+LOCALES_STRATEGY=header
+```
+
+### Session Mode
+
+Session mode is useful when you want to allow users to switch languages without changing the URL structure. In this mode, Lingo will store the selected language in the user's session. When a user selects a language, Lingo will update the session with the chosen language, and all subsequent requests will use that language for translations. Again, there will be no language-specific routes created in this mode.
+
+To enable session mode, you need to set the following in your `.env` file:
+
+```env
+LOCALES_STRATEGY=session
+```
+
+## Switching Locales
+
+Lingo uses the same approach for switching locales regardless of the mode you are using. You can use the `lingo()->setCurrentLocale()` method to create a route that handles locale switching. This will switch the current locale based on the strategy you have configured (routes or session). In header mode, this method will not have any effect since the locale is determined by the `Accept-Language` header.
+
+Here is an example of how to create a route for switching locales:
+
+```php
+app()->post('/language/switch', function() {
+    $locale = request()->get('locale');
+
+    return lingo()->setCurrentLocale($locale);
+});
+```
+
+`setCurrentLocale()` will automatically redirect the user to the expected location based on the strategy you are using.
+
+### Switcher Templating
+
+You can create a simple language switcher in your views. Here is an example of how to do this in a Blade template:
+
 ```php
 <form method="post" action="/language/switch">
   <select name="locale" onchange="this.form.submit()">
-    @foreach(omniglot()->getAvailableLocales() as $locale)
-        <option value="{{ $locale }}" {{ omniglot()->getCurrentLocale() === $locale ? 'selected' : '' }}>{{ $locale }}</option>
+    @foreach(lingo()->getAvailableLocalesWithNames() as $locale => $name)
+        <option value="{{ $locale }}" {{ lingo()->getCurrentLocale() === $locale ? 'selected' : '' }}>{{ $name }}</option>
     @endforeach
   </select>
 </form>
 
-<h1>{{ tl('welcome.title') }}</h1>
+<h1>@lingo('welcome.title')</h1>
 ```
 
-Or in a simple index.php file
+`getAvailableLocalesWithNames()` will return an array with the available locales as keys and the language names as values, so you can easily create a dropdown or any other UI element for switching languages, eg:
 
 ```php
-<form method="post" action="/language/switch">
-    <select name="locale" onchange="this.form.submit()">
-      <?php
-	foreach(omniglot()->getAvailableLocales() as $locale) {
-            if (omniglot()->getCurrentLocale() === $locale) {
-                echo '<option value=' . $locale .' selected>' . $locale . '</option>';
-            } else {
-                echo '<option value=' . $locale .'>' . $locale . '</option>';
-            }
-	}
-      ?>
-    </select>
-</form>
-
-<h1><?php echo tl('welcome.title') ?></h1>
+[
+    'en_US' => 'English (US)',
+    'es' => 'Español',
+    'it' => 'Italiano',
+    'zh' => '中文',
+    'zh_CN' => '简体中文',
+    'fr_FR' => 'Français (France)',
+    'de_DE' => 'Deutsch (Deutschland)',
+]
 ```
 
-You should now see in your browser a dropdown with "en_US" as option and inside the "h1" tag the text: Hello World
-
-You can now add another translation file with the same translation key but a different value  
-and see that the dropdown now has a new option and that you can click on it and switch language.
-
-For example:
+You can also use `getAvailableLocales()` if you just want the locale codes, eg:
 
 ```php
-// Create the following file inside the "locales" folder
-pt_PT.locale.json
-
-// With the following content
-{
-    "welcome.title": "Ola Mundo"
-}
-```
-Now if you switch to "pt_PT" in the dropdown you should see the text: Ola Mundo
-
-## Basic Usage
-
-After installing omniglot, you need to create a folder where your translation files will live.
-Inside this folder you create the files in the following way:
-
-```
-en_US.locale.json
-pt_PT.locale.json
+[
+    'en_US',
+    'es',
+    'it',
+    'zh',
+    'zh_CN',
+    'fr_FR',
+    'de_DE',
+]
 ```
 
-The important part is having a file suffixed with `.locale.json` the name for the language does not matter.
-You can use for example `en.locale.json` as well
+Now you should be able to display translations and switch between languages in your Leaf application using Lingo!
 
-### Translation file content
+### Current Locale Info
 
-Your translation files should have the following format:
+You can retrieve information about the current locale using the following methods:
+
+- `lingo()->getCurrentLocale()`: Returns the current locale code (e.g., `en_US`, `de`, ...).
+- `lingo()->getCurrentLanguage()`: Returns the current language code (not including region, e.g., `en`, `de`, ...).
+- `lingo()->getDefaultLocale()`: Returns the default locale code as defined in your `.env` file or configuration.
+- `lingo()->is()`: Checks if the current locale matches a given locale code.
+
+## Translation Parameters
+
+Lingo supports translation parameters, allowing you to insert dynamic values into your translations. You can define placeholders in your translation strings using the `{{ parameterName }}` or `$parameterName` syntax. For example:
+
+```yaml
+# app/locales/en.yml
+
+greeting.message: "Hello, {{ name }}! Welcome to our website."
+farewell.message: "Goodbye, $name! See you next time."
+```
+
+You can then pass an associative array of parameters to the `lingo()` function to replace the placeholders with actual values:
 
 ```php
-{
-    "welcome.page.title": "This is the page title translation",
-    "welcome.page.sub_title": "This is welcome page subtitle"
-}
+$message1 = lingo('greeting.message', ['name' => 'John']); // "Hello, John! Welcome to our website."
+$message2 = lingo('farewell.message', ['name' => 'John']); // "Goodbye, John! See you next time."
 ```
 
-As key in the json, you have the translation key, used to identify the translation and as value you have the translation itself in the language that
-you defined in the filename
+## Multi-language routes
 
-### Init
-
-Initialize the module and pass your custom configuration
+Some applications may require multi-language routes where certain parts of the URL are translated based on the current locale. For example, you might want `/en/products` to be `/fr/produits` in French. Lingo supports this functionality through Leaf's route parameters. Just define your routes as you always would, and then pass the route variants as an array to the route definition:
 
 ```php
-omniglot()->init([
-    'DEFAULT_LOCALE' => 'en_US',
-    'TRANSLATION_FILES_LOCATION' =>  './locales',
+app()->get('/products', [
+    'lingo.routes' => [
+        'en' => '/products',
+        'fr' => '/produits',
+        'de' => '/produkte',
+    ],
+    'ProductsController@index'
 ]);
 ```
 
-## Configurations
+Leaf will automatically handle the routing based on the current locale, allowing you to have translated routes in your application. Switching between locales will still work as expected, and users will be redirected to the appropriate translated route, so no additional handling is required on your part.
 
-These are the available configuration parameters that you can pass inside the `init()` method as seen above.
+Note that this feature only works with Lingo's route-based strategy.
 
-### DEFAULT_LOCALE
+## Lingo URL
 
-With this parameter you define your default locale so that this is the initial locale used in your application load.
-**The value configured here MUST match the translation file name that you define for this locale**. Example:
-```php
-DEFAULT_LOCALE => en_US
-
-// Translation file name
-en_US.locale.json
-```
-
-### TRANSLATION_FILES_LOCATION
-
-As the name says, this is the path to the folder that contains the translation files, one suggestion would be:
-`'TRANSLATION_FILES_LOCATION' =>  './locales'` and then put the translation files inside a `locales` folder.
-
-### LOCALE_STRATEGY
-
-With this you defined the way that you want Omniglot to behave when fetching and storing the chosen locale.
-Possible values are: `session`, `accept-language-header` and `custom`.
-- **session:** This is useful for a mvc/website setup. When you use omniglot and call `setCurrentLocale` or `getCurrentLocale` the current locale will be fetched/stored in session.
-- **accept-language-header:** This is useful when you are using Leaf as an API only. You just need to set the `Accept-Language` header to the value of the locale that you want to use
-and omniglot will translate according to this locale. `setCurrentLocale` here won't do anything as in this use case only the external application that calls the API, sets the locale.
-- **custom:** This is a more advanced option. Omniglot allows you to create your own locale fetching/storing strategy. To do this
-you need to create a class that implements `LocaleStrategyPluginInterface`. This interface has two methods:
-  - getCurrentLocale(): This should return a string with the locale name.
-  - setCurrentLocale(): And this is used to store the current locale (if needed). Does not return anything.
-
-### CUSTOM_LOCALE_STRATEGY_CLASS_NAME
-
-After setting `LOCALE_STRATEGY` to `custom` and implementing your own class that implements the mentioned interface.  
-You set here the class name of your new class, example:
+When using Lingo's route-based strategy, you can generate localized URLs using the `lingo()->url()` method. This method takes a path as an argument and returns the localized URL based on the current locale.
 
 ```php
-// Your class: RequestLocaleStrategy
-CUSTOM_LOCALE_STRATEGY_CLASS_NAME => RequestLocaleStrategy::class
+$url = lingo()->url('home'); // e.g., "/en/home" or "/fr/home"
 ```
 
-### Available methods
+If you are not using the route-based strategy, this method will simply return the path as is.
 
-#### tl()
+## Using Variants
 
-This method you can call from anywhere in functional mode and is the main method for translating you strings. This method takes two parameters:  
-- key: The translation key defined in your translation files
-- params: An array with the parameters that you define in your translation files, example:
+Lingo provides a convenient method called `variants()` that allows you to define different string variants based on the current locale. This is particularly useful for localizing routes or other strings that may not be part of the translation files.
 
 ```php
-// Translation file content
-{
-    "welcome.page.title": "Welcome %firstName% --lastName-- to the dashboard",
-    "navbar.title": "Dashboard"
-}
-
-// Translation method call
-tl('welcome.page.title', ['%firstName%' => 'John', '--lastName--' => 'Doe']); // Welcome John Doe to the dashboard
-
-// You can use anything as parameter identifier. Omniglot will look for anything that you pass as key  
-// in the parameters array and replace anything that it finds with this pattern and replace by the value you pass.
-
-// In case of translations without parameters you can simply call:
-tl('navbar.title'); // Dashboard
-
+$localizedRoute = lingo()->variants([
+    'en' => '/products',
+    'fr' => '/produits',
+    'es' => '/productos',
+]);
+// e.g., "/en/products" or "/fr/produits" or "/es/productos"
 ```
 
-#### omniglot()
+Variants aren't just limited to routes; you can use them for text, URLs, or any other strings that need localization based on the current locale.
 
-This method allows you to use any method inside the Omniglot class. For example you could use `omniglot()->translate()` instead of `tl()`.
-The following methods are available under `omniglot()`:
-- **omniglot()->init():** Explained above in the Basic Usage
-- **omniglot()->translate():** Same as `tl()`
-- **omniglot()->setCurrentLocale():** Used to set the current selected locale based on the chosen strategy
-- **omniglot()->getCurrentLocale():** Fetches current configured locale or the default locale in case nothing is configured yet
-- **omniglot()->getAvailableLocales():** Returns an array of locales available. This is fetched from the file names on the configured `locales` folder
-- **omniglot()->getDefaultLocale():** As the name implies, returns the configured default locale
+```php
+$greeting = lingo()->variants([
+    'en' => 'Hello',
+    'fr' => 'Bonjour',
+    'es' => 'Hola',
+]);
+// e.g., "Hello" or "Bonjour" or "Hola"
+```
 
-
-#### omniglot()->addLanguageSwitchRoute()
-
-You can call this method in the same file where you define your routes. For Leaf MVC / API that would be `_app`.   
-For a simple Leaf application it would be in `index.php`.
-
-This will automatically create a POST route for you to call when you want to switch language.  
-You simply need to do a POST to `/language/switch`, with the following POST data:
-
-````php
-{
-    "locale": "en_US"
-}
-````
-
-And it will set this as current locale if the corresponding file exists. It will also redirect back to the page it was called from.
-
-It also accepts 3 parameters.
-- **path**: By default the defined path is `/language/switch` but you can pass any path you want
-- **requestLocaleParamName**: By default the route is expecting POST data with a property called `locale` by default but this can be changed with this parameter
-- **redirectToReferer**: By default this route will automatically redirect to referer but you can set this to `false` and then it will just return a simple json response
-
-
-
-
-
-## Links/Projects
-
-- [Leaf Docs](https://leafphp.dev)
+We recommend using the translation files instead of `variants()` for most text translations, as it provides better organization and maintainability. However, `variants()` can be useful for quick translations which are non-repetitive or for localized routes.
