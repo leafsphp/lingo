@@ -240,7 +240,7 @@ class Lingo
     protected function parseTranslationParameters(string $translation, array $params): string
     {
         foreach ($params as $paramKey => $paramValue) {
-            $translation = str_replace("{{$paramKey}}", $paramValue, $translation);
+            $translation = str_replace(["{{ $paramKey }}", "$$paramKey"], $paramValue, $translation);
         }
 
         return $translation;
@@ -310,6 +310,17 @@ class Lingo
     public function getCurrentLocale(): ?string
     {
         return $this->handler->getCurrentLocale();
+    }
+
+    /**
+     * Returns the current language being used
+     * @return string|null
+     */
+    public function getCurrentLanguage(): ?string
+    {
+        $locale = $this->getCurrentLocale();
+
+        return $locale ? explode('_', $locale)[0] : null;
     }
 
     /**
@@ -394,6 +405,10 @@ class Lingo
     public function url(string $path): ?string
     {
         $locale = $this->getCurrentLocale();
+
+        if ($this->config('locales.strategy') !== 'router') {
+            return $path;
+        }
 
         return $locale ? str_replace('//', '/', "/$locale/$path") : null;
     }
