@@ -31,6 +31,8 @@ class Session implements Handler
     public static function setCurrentLocale(string $locale): void
     {
         session()->set(static::$config['locales.cacheKey'], $locale);
+        response()->redirect(request()->getPath());
+        exit;
     }
 
     /**
