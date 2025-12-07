@@ -28,6 +28,8 @@ class Router implements Handler
                             $updatedRoutes[$method] ?? [],
                             static::createLocalePrefixedRoutes($route)
                         );
+                    } else {
+                        $updatedRoutes[$method][] = $route;
                     }
                 }
             }
