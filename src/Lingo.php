@@ -157,8 +157,6 @@ class Lingo
         'he' => 'עברית',
         'he_IL' => 'עברית (ישראל)',
     ];
-
-
     protected array $config = [
         'locales.default' => 'en_US',
         'locales.available' => [],
@@ -171,6 +169,7 @@ class Lingo
     protected array $cache = [];
     protected array $fileIndex = [];
     protected array $translations = [];
+    protected $overrideLocale = null;
     protected Lingo\Handler $handler;
     protected array $drivers = [
         'router' => Lingo\Handler\Router::class,
@@ -292,7 +291,7 @@ class Lingo
     /**
      * Sets the current locale to be used
      *
-     * @param string $locale - must match the file name Ex: file: en_US.locale.json, localeName: en_US
+     * @param string $locale Must match the file name Ex: file: en_US.yml, localeName: en_US
      *
      * @return void
      *
@@ -304,12 +303,24 @@ class Lingo
     }
 
     /**
+     * Override current locale without handler effects
+     * 
+     * @param string|null $locale The locale to set
+     * 
+     * @return void
+     */
+    public function overrideCurrentLocale(?string $locale): void
+    {
+        $this->overrideLocale = $locale;
+    }
+
+    /**
      * Returns the current locale being used
      * @return string|null
      */
     public function getCurrentLocale(): ?string
     {
-        return $this->handler->getCurrentLocale();
+        return $this->overrideLocale ?? $this->handler->getCurrentLocale();
     }
 
     /**
