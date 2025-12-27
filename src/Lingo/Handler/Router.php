@@ -103,8 +103,15 @@ class Router implements Handler
                     $otherLingoInRoute = $route;
                     $otherLingoInRoute['pattern'] = '/' . $locale . ($value === '/' ? '' : $value);
                     $otherLingoInRoute['handler'] = function () use ($locale, $route) {
+                        $data = '';
+                        $params = request()->urlData();
                         $value = $route['lingo.routes'][$locale];
-                        return response()->redirect('/' . $locale . ($value === '/' ? '' : $value));
+
+                        if (\count($params) > 0) {
+                            $data = '?' . http_build_query($params);
+                        }
+
+                        return response()->redirect('/' . $locale . ($value === '/' ? '' : $value) . $data);
                     };
 
                     $prefixedRoutes[] = $otherLingoInRoute;
@@ -120,7 +127,14 @@ class Router implements Handler
 
         $prefixedRoutes[] = array_merge($route, [
             'handler' => function () use ($defaultLocale) {
-                return response()->redirect('/' . $defaultLocale . request()->getPath());
+                $data = '';
+                $params = request()->urlData();
+
+                if (\count($params) > 0) {
+                    $data = '?' . http_build_query($params);
+                }
+
+                return response()->redirect('/' . $defaultLocale . request()->getPath() . $data);
             }
         ]);
 
