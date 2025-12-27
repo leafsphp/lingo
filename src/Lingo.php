@@ -225,7 +225,7 @@ class Lingo
         }
 
         if (!isset($this->fileIndex[$locale])) {
-            $this->fileIndex[$locale] = $this->indexFile($locale);
+            $this->fileIndex[$locale] = $this->getLocaleData($locale);
         }
 
         if (isset($this->fileIndex[$locale][$key])) {
@@ -245,7 +245,13 @@ class Lingo
         return $translation;
     }
 
-    protected function indexFile(string $locale): array
+    /**
+     * Get the data in a translation file
+     *
+     * @param string $locale The locale to get
+     * @return array
+     */
+    public function getLocaleData(string $locale): array
     {
         $filePath = $this->translations[$locale];
         $data = Yaml::parseFile($filePath);
@@ -283,7 +289,7 @@ class Lingo
     public function translate(string $key, array $params = []): string
     {
         return $this->parseTranslationParameters($this->get(
-            $this->handler->getCurrentLocale(),
+            $this->getCurrentLocale(),
             $key,
         ), $params);
     }
@@ -304,9 +310,9 @@ class Lingo
 
     /**
      * Override current locale without handler effects
-     * 
+     *
      * @param string|null $locale The locale to set
-     * 
+     *
      * @return void
      */
     public function overrideCurrentLocale(?string $locale): void
@@ -358,6 +364,16 @@ class Lingo
         }
 
         return $locales;
+    }
+
+    /**
+     * Return the name of a locale from code
+     *
+     * @return string|null
+     */
+    public function getLocaleName($code)
+    {
+        return $this->locales[$code] ?? null;
     }
 
     /**
