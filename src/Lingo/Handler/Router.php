@@ -48,9 +48,12 @@ class Router implements Handler
         $currentUrl = request()->getPath();
         $segments = explode('/', ltrim($currentUrl, '/'));
 
+
         if (\count($segments) > 0) {
-            $segments[0] = $locale;
+            array_unshift($segments, $locale);
+
             $newUrl = '/' . implode('/', $segments);
+
             response()->redirect($newUrl);
 
             exit;
