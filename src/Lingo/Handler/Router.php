@@ -128,18 +128,24 @@ class Router implements Handler
             $prefixedRoutes[] = $newRoute;
         }
 
-        $prefixedRoutes[] = array_merge($route, [
-            'handler' => function () use ($defaultLocale) {
-                $data = '';
-                $params = request()->urlData();
+        $prefixedRoutes[] = array_merge(
+            $route,
+            [
+                'sitemap' => false,
+            ],
+            [
+                'handler' => function () use ($defaultLocale) {
+                    $data = '';
+                    $params = request()->urlData();
 
-                if (\count($params) > 0) {
-                    $data = '?' . http_build_query($params);
+                    if (\count($params) > 0) {
+                        $data = '?' . http_build_query($params);
+                    }
+
+                    return response()->redirect('/' . $defaultLocale . request()->getPath() . $data);
                 }
-
-                return response()->redirect('/' . $defaultLocale . request()->getPath() . $data);
-            }
-        ]);
+            ]
+        );
 
         return $prefixedRoutes;
     }
