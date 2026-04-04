@@ -79,7 +79,7 @@ class Router implements Handler
      */
     protected static function shouldPrefixWithLocale(array $route): bool
     {
-        if (isset($route['lingo.no_locale_prefix']) && $route['lingo.no_locale_prefix'] === true) {
+        if (isset($route['lingo.routes']) && $route['lingo.routes'] === false) {
             return false;
         }
 
