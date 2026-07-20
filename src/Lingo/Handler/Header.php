@@ -32,6 +32,30 @@ class Header implements Handler
      */
     public static function getCurrentLocale(): ?string
     {
-        return request()->headers('Accept-Language') ?? static::$config['locales.default'] ?? null;
+        $requestedLocale = request()->headers('Accept-Language');
+        if (empty($requestedLocale)) {
+            return static::$config['locales.default'] ?? null;
+        }
+        $requestedLocales = array_reduce(
+            explode(
+                ',',
+                $requestedLocale
+            ),
+            function ($carry, $item) {
+                $locale = explode(';', trim($item));
+                if (isset($locale[1]) && strpos($locale[1], 'q=') === 0) {
+                    $carry[$locale[0]] = floatval(substr($locale[1], 2));
+                } else {
+                    $carry[$locale[0]] = 1.0;
+                }
+                return $carry;
+            }
+        );
+        arsort($requestedLocales, SORT_NUMERIC);
+        $requestedLocale = array_key_first($requestedLocales);
+        if ($requestedLocale === '*') {
+            return static::$config['locales.default'] ?? null;
+        }
+        return $requestedLocale;
     }
 }
