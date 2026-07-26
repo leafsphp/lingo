@@ -1,49 +1,54 @@
 {
-  "name": "leafs/lingo",
-  "description": "Add multi language support to your Leaf applications with ease.",
-  "keywords": [
-    "translations",
-    "localization",
-    "multi-language",
-    "i18n",
-    "internationalization",
-    "leaf",
-    "php"
-  ],
-  "type": "library",
-  "minimum-stability": "stable",
-  "prefer-stable": true,
-  "require": {
-    "leafs/session": "*",
-    "leafs/fs": "*",
-    "symfony/yaml": "*"
-  },
-  "require-dev": {
-    "pestphp/pest": "*",
-    "mockery/mockery": "*"
-  },
-  "license": "MIT",
-  "autoload": {
-    "psr-4": {
-      "Leaf\\": "src/"
+    "name": "leafs/lingo",
+    "description": "Add multi language support to your Leaf applications with ease.",
+    "keywords": [
+        "translations",
+        "localization",
+        "multi-language",
+        "i18n",
+        "internationalization",
+        "leaf",
+        "php"
+    ],
+    "type": "library",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "leafs/session": "*",
+        "leafs/fs": "*",
+        "symfony/yaml": "*"
     },
-    "files": [
-      "src/functions.php"
-    ]
-  },
-  "authors": [
-    {
-      "name": "André Rosa",
-      "email": "crosa7000@gmail.com"
+    "require-dev": {
+        "pestphp/pest": "*",
+        "mockery/mockery": "*"
     },
-    {
-      "name": "Michael Darko",
-      "email": "mychi.darko@gmail.com"
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Leaf\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Andr\u00e9 Rosa",
+            "email": "crosa7000@gmail.com"
+        },
+        {
+            "name": "Michael Darko",
+            "email": "mychi.darko@gmail.com"
+        }
+    ],
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-v5.x": "5.0.x-dev"
+        }
     }
-  ],
-  "config": {
-    "allow-plugins": {
-      "pestphp/pest-plugin": true
-    }
-  }
 }
