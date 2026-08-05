@@ -45,19 +45,18 @@ class Router implements Handler
      */
     public static function setCurrentLocale(string $locale): void
     {
-        $currentUrl = request()->getPath();
-        $segments = explode('/', ltrim($currentUrl, '/'));
+        $segments = explode('/', ltrim(request()->getPath(), '/'));
 
-
-        if (\count($segments) > 0) {
+        if (static::isKnownLocale($segments[0] ?? '')) {
+            // /fr/page → /en/page, never /en/fr/page
+            $segments[0] = $locale;
+        } else {
             array_unshift($segments, $locale);
-
-            $newUrl = '/' . implode('/', $segments);
-
-            response()->redirect($newUrl);
-
-            exit;
         }
+
+        response()->redirect('/' . implode('/', $segments));
+
+        exit;
     }
 
     /**
@@ -65,10 +64,23 @@ class Router implements Handler
      */
     public static function getCurrentLocale(): ?string
     {
-        $currentUrl = request()->getPath();
-        $segments = explode('/', ltrim($currentUrl, '/'));
+        $segments = explode('/', ltrim(request()->getPath(), '/'));
+        $firstSegment = $segments[0] ?? '';
 
-        return ($segments[0] ?? null) ?: static::$config['locales.default'];
+        return static::isKnownLocale($firstSegment)
+            ? $firstSegment
+            : static::$config['locales.default'];
+    }
+
+    /**
+     * Check that a URL segment is actually one of the app's locales
+     *
+     * @param string $segment The URL segment to check
+     * @return bool
+     */
+    protected static function isKnownLocale(string $segment): bool
+    {
+        return $segment !== '' && in_array($segment, static::$config['locales.available'] ?? []);
     }
 
     /**
@@ -95,7 +107,7 @@ class Router implements Handler
         foreach ($availableLocales as $locale) {
             if (!empty($route['lingo.routes'][$locale])) {
                 $newRoute = $route;
-                $newRoute['pattern'] = '/' . $locale . ($route['lingo.routes'][$locale] === '/' ? '' : $route['lingo.routes'][$locale]);
+                $newRoute['pattern'] = "/$locale" . ($route['lingo.routes'][$locale] === '/' ? '' : $route['lingo.routes'][$locale]);
                 $prefixedRoutes[] = $newRoute;
 
                 foreach ($route['lingo.routes'] as $key => $value) {
@@ -104,7 +116,7 @@ class Router implements Handler
                     }
 
                     $otherLingoInRoute = $route;
-                    $otherLingoInRoute['pattern'] = '/' . $locale . ($value === '/' ? '' : $value);
+                    $otherLingoInRoute['pattern'] = "/$locale" . ($value === '/' ? '' : $value);
                     $otherLingoInRoute['handler'] = function () use ($locale, $route) {
                         $data = '';
                         $params = request()->urlData();
@@ -114,7 +126,7 @@ class Router implements Handler
                             $data = '?' . http_build_query($params);
                         }
 
-                        return response()->redirect('/' . $locale . ($value === '/' ? '' : $value) . $data);
+                        return response()->redirect("/$locale" . ($value === '/' ? '' : $value) . $data);
                     };
 
                     $prefixedRoutes[] = $otherLingoInRoute;
@@ -124,7 +136,7 @@ class Router implements Handler
             }
 
             $newRoute = $route;
-            $newRoute['pattern'] = '/' . $locale . ($route['pattern'] === '/' ? '' : $route['pattern']);
+            $newRoute['pattern'] = "/$locale" . ($route['pattern'] === '/' ? '' : $route['pattern']);
             $prefixedRoutes[] = $newRoute;
         }
 
@@ -142,7 +154,7 @@ class Router implements Handler
                         $data = '?' . http_build_query($params);
                     }
 
-                    return response()->redirect('/' . $defaultLocale . request()->getPath() . $data);
+                    return response()->redirect("/$defaultLocale" . request()->getPath() . $data);
                 }
             ]
         );

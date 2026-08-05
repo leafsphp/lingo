@@ -1,0 +1,6 @@
+greeting: Oi
+welcome:
+  title: Bem-vindo ao Leaf
+  subtitle: Crie aplicativos simples
+greet_user: "Oi, {{ name }}!"
+greet_dollar: "Oi, $name!"

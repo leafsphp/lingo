@@ -186,11 +186,50 @@ class Lingo
      */
     public function create(array $config = []): void
     {
-        $this->config = array_merge($this->config, $config);
+        $this->config = array_merge($this->config, $this->configFromEnv(), $config);
 
         $this->getTranslationFiles();
 
-        $this->handler = $this->drivers[$this->config['locales.strategy']]::create($this->config);
+        $strategy = $this->config['locales.strategy'];
+
+        if ($strategy === 'custom') {
+            $customStrategy = $this->config['locales.customStrategy'];
+
+            if (!$customStrategy || !is_subclass_of($customStrategy, Lingo\Handler::class)) {
+                throw new Lingo\Exceptions\LocaleStrategyNotFoundException($strategy);
+            }
+
+            $this->handler = $customStrategy::create($this->config);
+
+            return;
+        }
+
+        if (!isset($this->drivers[$strategy])) {
+            throw new Lingo\Exceptions\LocaleStrategyNotFoundException($strategy);
+        }
+
+        $this->handler = $this->drivers[$strategy]::create($this->config);
+    }
+
+    /**
+     * Config values that can come from the environment
+     *
+     * These sit between the defaults and whatever is passed to create(),
+     * so a value set in code always wins over a .env entry. Lingo can be
+     * used without leaf core, so `_env` may not be there at all.
+     *
+     * @return array<string, mixed>
+     */
+    protected function configFromEnv(): array
+    {
+        if (!function_exists('_env')) {
+            return [];
+        }
+
+        return array_filter([
+            'locales.default' => _env('APP_LOCALE'),
+            'locales.strategy' => _env('LOCALES_STRATEGY'),
+        ], fn ($value) => $value !== null);
     }
 
     /**
@@ -203,7 +242,7 @@ class Lingo
      */
     public function config(string $key, $value = null)
     {
-        if (!$value) {
+        if (func_num_args() === 1) {
             return $this->config[$key] ?? null;
         }
 
@@ -229,7 +268,7 @@ class Lingo
         }
 
         if (isset($this->fileIndex[$locale][$key])) {
-            $this->cache[$locale][$key] = $this->fileIndex[$locale][$key];
+            $this->cache[$locale][$key] = (string) $this->fileIndex[$locale][$key];
             return $this->cache[$locale][$key];
         }
 
@@ -253,10 +292,39 @@ class Lingo
      */
     public function getLocaleData(string $locale): array
     {
-        $filePath = $this->translations[$locale];
-        $data = Yaml::parseFile($filePath);
+        if (!isset($this->translations[$locale])) {
+            throw new Lingo\Exceptions\LocaleNotFoundException($locale);
+        }
 
-        return $data;
+        $data = Yaml::parseFile($this->translations[$locale]);
+
+        return $this->flattenTranslations(is_array($data) ? $data : []);
+    }
+
+    /**
+     * Flatten nested translation maps into dot notation keys
+     *
+     * ['welcome' => ['title' => 'Hi']] => ['welcome.title' => 'Hi']
+     *
+     * @param array $translations The parsed translation data
+     * @param string $prefix Key prefix carried through recursion
+     * @return array<string, string>
+     */
+    protected function flattenTranslations(array $translations, string $prefix = ''): array
+    {
+        $flattened = [];
+
+        foreach ($translations as $key => $value) {
+            $fullKey = $prefix === '' ? (string) $key : "$prefix.$key";
+
+            if (is_array($value)) {
+                $flattened = array_merge($flattened, $this->flattenTranslations($value, $fullKey));
+            } else {
+                $flattened[$fullKey] = (string) $value;
+            }
+        }
+
+        return $flattened;
     }
 
     /**
@@ -272,8 +340,11 @@ class Lingo
 
         $files = glob("$fileDirectory/*.yml");
 
+        $this->translations = [];
+        $this->config['locales.available'] = [];
+
         foreach ($files as $file) {
-            $localeName = str_replace('.yml', '', path($file)->basename());
+            $localeName = basename($file, '.yml');
 
             $this->translations[$localeName] = $file;
             $this->config['locales.available'][] = $localeName;
@@ -412,14 +483,13 @@ class Lingo
         $currentUrl = request()->getPath();
         $segments = explode('/', ltrim($currentUrl, '/'));
 
-        if (\count($segments) > 0) {
+        if (($segments[0] ?? '') !== '' && in_array($segments[0], $this->getAvailableLocales())) {
             $segments[0] = $locale;
-            $newUrl = '/' . implode('/', $segments);
-
-            return $newUrl;
+        } else {
+            array_unshift($segments, $locale);
         }
 
-        return $currentUrl;
+        return '/' . implode('/', $segments);
     }
 
     /**

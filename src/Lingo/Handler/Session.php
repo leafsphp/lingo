@@ -17,10 +17,12 @@ class Session implements Handler
     {
         static::$config = $config;
 
-        session()->set(
-            static::$config['locales.cacheKey'],
-            static::$config['locales.default']
-        );
+        if (!session()->get(static::$config['locales.cacheKey'])) {
+            session()->set(
+                static::$config['locales.cacheKey'],
+                static::$config['locales.default']
+            );
+        }
 
         return new static();
     }

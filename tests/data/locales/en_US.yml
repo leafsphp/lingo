@@ -1,0 +1,7 @@
+greeting: Hello
+welcome:
+  title: Welcome to Leaf
+  subtitle: Build simple apps
+greet_user: "Hello, {{ name }}!"
+greet_dollar: "Hello, $name!"
+items_count: "You have {{ count }} items, {{ name }}"
