@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Leaf;
 
 use Symfony\Component\Yaml\Yaml;
@@ -226,9 +225,15 @@ class Lingo
             return [];
         }
 
+        // read live rather than through _env()'s per-process cache: this runs
+        // once per create(), so two uncached reads cost nothing, and locale
+        // config stays honest in long-running workers and tests that set
+        // the environment at runtime
+        $read = function_exists('_envUncached') ? '_envUncached' : '_env';
+
         return array_filter([
-            'locales.default' => _env('APP_LOCALE'),
-            'locales.strategy' => _env('LOCALES_STRATEGY'),
+            'locales.default' => $read('APP_LOCALE'),
+            'locales.strategy' => $read('LOCALES_STRATEGY'),
         ], fn ($value) => $value !== null);
     }
 
@@ -269,6 +274,7 @@ class Lingo
 
         if (isset($this->fileIndex[$locale][$key])) {
             $this->cache[$locale][$key] = (string) $this->fileIndex[$locale][$key];
+
             return $this->cache[$locale][$key];
         }
 

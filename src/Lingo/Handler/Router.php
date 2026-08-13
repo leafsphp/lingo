@@ -155,7 +155,7 @@ class Router implements Handler
                     }
 
                     return response()->redirect("/$defaultLocale" . request()->getPath() . $data);
-                }
+                },
             ]
         );
 

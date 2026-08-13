@@ -16,6 +16,7 @@ class Header implements Handler
     public static function create(array $config): static
     {
         static::$config = $config;
+
         return new static();
     }
 

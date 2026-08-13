@@ -3,10 +3,10 @@
 if (!function_exists('lingo')) {
     /**
      * Return the Lingo instance or translate a string
-     * 
+     *
      * @param string|null $key The translation key
      * @param array $params The parameters for the translation
-     * 
+     *
      * @return \Leaf\Lingo|string
      */
     function lingo(?string $key = null, array $params = [])

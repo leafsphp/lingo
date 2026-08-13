@@ -15,14 +15,15 @@
     "prefer-stable": true,
     "require": {
         "php": "^8.2",
-        "leafs/session": "*",
-        "leafs/fs": "*",
+        "leafs/session": "^5.0",
+        "leafs/fs": "^5.0",
         "symfony/yaml": "*"
     },
     "require-dev": {
         "pestphp/pest": "*",
         "mockery/mockery": "*",
-        "leafs/alchemy": "v5.x-dev"
+        "leafs/alchemy": "^5.0",
+        "friendsofphp/php-cs-fixer": "*"
     },
     "license": "MIT",
     "autoload": {
