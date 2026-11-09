@@ -27,5 +27,5 @@ jobs:
       - name: Install PHP dependencies
         run: composer update --no-interaction --no-progress
 
-      - name: All Tests
-        run: php vendor/bin/pest --colors=always --coverage
+      - name: Run Tests
+        run: composer run test -- --flags=coverage
